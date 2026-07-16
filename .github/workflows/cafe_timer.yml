@@ -9,6 +9,10 @@ on:
         default: 60
         type: number
 
+concurrency:
+  group: cafe-touch-timer
+  cancel-in-progress: true
+
 jobs:
   notify:
     runs-on: ubuntu-latest
