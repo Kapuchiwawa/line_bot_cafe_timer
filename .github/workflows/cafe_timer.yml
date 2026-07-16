@@ -1,0 +1,47 @@
+name: Cafe Timer
+
+on:
+  workflow_dispatch:
+    inputs:
+      wait_seconds:
+        description: "通知まで待つ秒数"
+        required: true
+        default: 60
+        type: number
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+
+    steps:
+      - name: コードを読み込む
+        uses: actions/checkout@v4
+
+      - name: Pythonを準備する
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: ライブラリをインストールする
+        run: pip install -r requirements.txt
+
+      - name: 待ち時間を確認する
+        env:
+          WAIT_SECONDS: ${{ inputs.wait_seconds }}
+        run: |
+          if [ "$WAIT_SECONDS" -lt 0 ] || [ "$WAIT_SECONDS" -gt 10800 ]; then
+            echo "待ち時間は0秒から10800秒までにしてください。"
+            exit 1
+          fi
+
+      - name: 指定された時間だけ待つ
+        env:
+          WAIT_SECONDS: ${{ inputs.wait_seconds }}
+        run: sleep "$WAIT_SECONDS"
+
+      - name: LINE通知を送る
+        run: python send_notification.py
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
